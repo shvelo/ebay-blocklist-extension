@@ -9,11 +9,14 @@
                 "https://*.ebay.com/*"
             ],
             "js": [
-                "extension.js"
+                "extension/extension.js"
+            ],
+            "css": [
+                "extension/extension.css"
             ]
         }
     ],
-    "options_page": "options.html",
+    "options_page": "options/options.html",
     "web_accessible_resources": [
         "page.js"
     ],
