@@ -50,19 +50,22 @@ function unblacklistSeller(seller, cb) {
 }
 
 function updateBlacklist() {
-    const blacklistEl = document.getElementById('blacklist');
+    const blacklistEl = document.getElementById('blacklist-body');
     blacklistEl.innerHTML = "";
     blacklist.forEach(function (seller) {
-        let sellerEl = document.createElement('li');
-        sellerEl.innerHTML = `<span>${seller}</span>`;
+        let sellerEl = document.createElement('tr');
+        sellerEl.innerHTML = `<td>${seller}</td>`;
 
-        unblacklistButton = document.createElement('button');
+        let unblacklistTd = document.createElement('td');
+        sellerEl.appendChild(unblacklistTd);
+
+        let unblacklistButton = document.createElement('button');
         unblacklistButton.innerHTML = 'Unblacklist';
         let cachedSeller = seller;
         unblacklistButton.addEventListener('click', function () {
             unblacklistSeller(cachedSeller);
         });
-        sellerEl.appendChild(unblacklistButton);
+        unblacklistTd.appendChild(unblacklistButton);
 
         blacklistEl.appendChild(sellerEl);
     })

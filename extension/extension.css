@@ -24,6 +24,7 @@
 }
 
 .blacklist-extension-notification-button {
+    color: white;
     background: none;
     cursor: pointer;
     font-weight: bold;
