@@ -1,11 +1,3 @@
-.blacklist {
-    border: 1px solid black;
-}
-
-.blacklist tr {
-}
-
-.blacklist td, .blacklist th {
-    padding: 5px 15px;
-    border-bottom: 1px solid black;
+.content {
+    padding: 0 2em;
 }

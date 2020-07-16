@@ -1,72 +1,72 @@
-var blacklist = [];
+var blocklist = [];
 
 init();
 
 function init() {
     chrome.storage.onChanged.addListener(function (changes) {
         if (changes.ebayBlacklist) {
-            blacklist = changes.ebayBlacklist.newValue;
-            console.log('Blacklist updated', blacklist);
-            updateBlacklist();
+            blocklist = changes.ebayBlacklist.newValue;
+            console.log('Blocklist updated', blocklist);
+            updateBlocklist();
         }
     });
 
-    getBlacklist(updateBlacklist);
+    getBlocklist(updateBlocklist);
 }
 
-function getBlacklist(cb) {
+function getBlocklist(cb) {
     chrome.storage.sync.get(['ebayBlacklist'], function (result) {
-        console.log('Blacklist currently is', result.ebayBlacklist);
+        console.log('Blocklist currently is', result.ebayBlacklist);
         if (result.ebayBlacklist)
-            blacklist = result.ebayBlacklist;
+            blocklist = result.ebayBlacklist;
         if (cb) cb();
     });
 }
 
-function saveBlacklist(cb) {
-    chrome.storage.sync.set({ ebayBlacklist: blacklist }, function () {
-        console.log('Saved Blacklist', blacklist);
+function saveBlocklist(cb) {
+    chrome.storage.sync.set({ ebayBlacklist: blocklist }, function () {
+        console.log('Saved Blocklist', blocklist);
         if (cb) cb();
     });
 }
 
-function isBlacklisted(seller) {
-    return blacklist.indexOf(seller) !== -1;
+function isBlocked(seller) {
+    return blocklist.indexOf(seller) !== -1;
 }
 
-function blacklistSeller(seller, cb) {
-    if (isBlacklisted(seller))
+function blockSeller(seller, cb) {
+    if (isBlocked(seller))
         return;
-    blacklist.push(seller);
-    saveBlacklist(cb);
+    blocklist.push(seller);
+    saveBlocklist(cb);
 }
 
-function unblacklistSeller(seller, cb) {
-    let index = blacklist.indexOf(seller);
+function unblockSeller(seller, cb) {
+    let index = blocklist.indexOf(seller);
     if (index !== -1) {
-        blacklist.splice(index, 1);
+        blocklist.splice(index, 1);
     }
-    saveBlacklist(cb);
+    saveBlocklist(cb);
 }
 
-function updateBlacklist() {
-    const blacklistEl = document.getElementById('blacklist-body');
-    blacklistEl.innerHTML = "";
-    blacklist.forEach(function (seller) {
+function updateBlocklist() {
+    const blocklistEl = document.getElementById('blocklist-body');
+    blocklistEl.innerHTML = "";
+    blocklist.forEach(function (seller) {
         let sellerEl = document.createElement('tr');
         sellerEl.innerHTML = `<td>${seller}</td>`;
 
-        let unblacklistTd = document.createElement('td');
-        sellerEl.appendChild(unblacklistTd);
+        let unblockTd = document.createElement('td');
+        sellerEl.appendChild(unblockTd);
 
-        let unblacklistButton = document.createElement('button');
-        unblacklistButton.innerHTML = 'Unblacklist';
+        let unblockButton = document.createElement('button');
+        unblockButton.innerHTML = 'Unblock';
         let cachedSeller = seller;
-        unblacklistButton.addEventListener('click', function () {
-            unblacklistSeller(cachedSeller);
+        unblockButton.addEventListener('click', function () {
+            unblockSeller(cachedSeller);
         });
-        unblacklistTd.appendChild(unblacklistButton);
+        unblockTd.appendChild(unblockButton);
 
-        blacklistEl.appendChild(sellerEl);
+        blocklistEl.appendChild(sellerEl);
     })
 }

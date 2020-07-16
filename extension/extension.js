@@ -1,115 +1,155 @@
-const buttonClass = 'blacklist-extension-button';
-const notificationClass = 'blacklist-extension-notification';
-const notificationButtonClass = 'blacklist-extension-notification-button';
+const buttonClass = 'blocklist-extension-button';
+const notificationClass = 'blocklist-extension-notification';
+const notificationButtonClass = 'blocklist-extension-notification-button';
 
-var blacklist = [];
+var blocklist = [];
 
 init();
 
 function init() {
     chrome.storage.onChanged.addListener(function (changes) {
         if (changes.ebayBlacklist) {
-            blacklist = changes.ebayBlacklist.newValue;
-            console.log('Blacklist updated', blacklist);
-            runBlacklist();
+            blocklist = changes.ebayBlacklist.newValue;
+            console.log('Blocklist updated', blocklist);
+            runBlocklist();
         }
     });
 
-    getBlacklist(runBlacklist);
+    getBlocklist(runBlocklist);
 }
 
-function getBlacklist(cb) {
-    chrome.storage.sync.get(['ebayBlacklist'], function (result) {
-        console.log('Blacklist currently is', result.ebayBlacklist);
-        if (result.ebayBlacklist)
-            blacklist = result.ebayBlacklist;
-        if (cb) cb();
-    });
-}
-
-function saveBlacklist(cb) {
-    chrome.storage.sync.set({ ebayBlacklist: blacklist }, function () {
-        console.log('Saved Blacklist', blacklist);
-        if (cb) cb();
-    });
-}
-
-function isBlacklisted(seller) {
-    return blacklist.indexOf(seller) !== -1;
-}
-
-function blacklistSeller(seller, cb) {
-    if (isBlacklisted(seller))
-        return;
-    blacklist.push(seller);
-    notifyBlacklisted(seller);
-    saveBlacklist(cb);
-}
-
-function unblacklistSeller(seller, cb) {
-    let index = blacklist.indexOf(seller);
-    if (index !== -1) {
-        blacklist.splice(index, 1);
+function verifyBlocklist(newBlocklist, cb) {
+    if (!(newBlocklist instanceof Array)) {
+        console.log('Blocklist invalid, resetting');
+        return resetBlocklist(cb);
     }
-    saveBlacklist(cb);
+
+    if (newBlocklist.length && typeof newBlocklist[0] === 'string') {
+        console.log('Blocklist in old format, migrating');
+        return migrateBlocklist(newBlocklist, cb);
+    }
+
+    blocklist = newBlocklist;
+    if (cb) cb();
 }
 
-function notifyBlacklisted(seller) {
+function resetBlocklist(cb) {
+    blocklist = [];
+    saveBlocklist(cb);
+}
+
+function migrateBlocklist(newBlockList, cb) {
+    blocklist = newBlockList.map((item) => {
+        return item;
+    });
+    if (cb) cb();
+}
+
+function getBlocklist(cb) {
+    chrome.storage.sync.get(['ebayBlacklist'], function (result) {
+        console.log('Retrieved Blocklist', result.ebayBlacklist);
+        if (result.ebayBlacklist)
+            verifyBlocklist(result.ebayBlacklist, cb);
+        else if (cb) cb();
+    });
+}
+
+function saveBlocklist(cb) {
+    chrome.storage.sync.set({ ebayBlacklist: blocklist }, function () {
+        console.log('Saved Blocklist', blocklist);
+        if (cb) cb();
+    });
+}
+
+function isBlocked(seller) {
+    for (let i in blocklist) {
+        if (blocklist[i] === seller)
+            return true;
+    }
+    return false;
+}
+
+function findBlocklistIndex(seller) {
+    for (let i in blocklist) {
+        if (blocklist[i] === seller)
+            return i;
+    }
+    return -1;
+}
+
+function blockSeller(seller, cb) {
+    if (isBlocked(seller))
+        return;
+    blocklist.push(seller);
+    notifyBlocked(seller);
+    runBlocklist();
+    saveBlocklist(cb);
+}
+
+function unblockSeller(seller, cb) {
+    let index = findBlocklistIndex(seller);
+    if (index !== -1) {
+        blocklist.splice(index, 1);
+    }
+    saveBlocklist(cb);
+}
+
+function notifyBlocked(seller) {
     let removed = false;
-    blacklistNotification = document.createElement('div');
-    blacklistNotification.innerHTML = `Seller <strong>${seller}</strong> added to blacklist`;
-    blacklistNotification.className = notificationClass;
+    const blockNotification = document.createElement('div');
+    blockNotification.innerHTML = `Seller <strong>${seller}</strong> blocked`;
+    blockNotification.className = notificationClass;
     const undoButton = document.createElement('button');
     undoButton.innerText = 'undo';
     undoButton.className = notificationButtonClass;
     let cachedSeller = seller;
     undoButton.addEventListener('click', function () {
-        unblacklistSeller(cachedSeller);
+        unblockSeller(cachedSeller);
         if (!removed) {
-            document.body.removeChild(blacklistNotification);
+            document.body.removeChild(blockNotification);
             removed = true;
         }
     });
-    blacklistNotification.appendChild(undoButton);
-    document.body.appendChild(blacklistNotification);
+    blockNotification.appendChild(undoButton);
+    document.body.appendChild(blockNotification);
     setTimeout(function () {
         if (!removed) {
-            document.body.removeChild(blacklistNotification);
+            document.body.removeChild(blockNotification);
             removed = true;
         }
     }, 5000);
 }
 
-function runBlacklist() {
+function runBlocklist() {
     const results = document.querySelectorAll(".lvresult");
-    let seller, sellerArea, blacklistButton;
+    let seller, sellerArea, blockButton;
 
     results.forEach(function (result) {
         seller = result.textContent.match(/seller: ([^\n\(]+)/i)[1];
         if (!seller)
             return;
 
-        if (isBlacklisted(seller)) {
-            console.log('Found result from blacklisted seller', seller);
+        if (isBlocked(seller)) {
+            console.log('Found result from blocked seller', seller);
             result.style.display = 'none';
         } else {
             result.style.display = 'block';
-            // Add blacklist button to all results
+            // Add block button to all results
             sellerArea = result.querySelector('.lvdetails li:last-child');
 
             // Return if button already added
             if (sellerArea.lastChild && sellerArea.lastChild.className === buttonClass)
                 return;
 
-            blacklistButton = document.createElement('button');
-            blacklistButton.innerHTML = '&times Blacklist';
-            blacklistButton.dataset.isBlacklistButton = true;
-            blacklistButton.className = buttonClass;
+            blockButton = document.createElement('button');
+            blockButton.innerHTML = '&times Block';
+            blockButton.dataset.isBlockButton = true;
+            blockButton.className = buttonClass;
             let cachedSeller = seller;
-            blacklistButton.addEventListener('click', function () {
-                blacklistSeller(cachedSeller);
+            blockButton.addEventListener('click', function () {
+                blockSeller(cachedSeller);
             });
-            sellerArea.appendChild(blacklistButton);
+            sellerArea.appendChild(blockButton);
         }
     });
 }

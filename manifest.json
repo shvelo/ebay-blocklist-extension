@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
-    "name": "eBay Blacklist filter",
-    "description": "Provides a blacklist to filter out annoying sellers from search results",
+    "name": "eBay Blocklist filter",
+    "description": "Provides ability to block annoying sellers in eBay search results",
     "version": "1.0",
     "content_scripts": [
         {

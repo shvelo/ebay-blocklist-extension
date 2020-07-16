@@ -4,22 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>eBay Blacklist Options</title>
+    <title>eBay Blocklist Options</title>
+    <link rel="stylesheet" href="pure-min.css">
     <link rel="stylesheet" href="options.css">
 </head>
 
 <body>
-    <h1>Blacklisted sellers:</h1>
+    <div class="content">
+        <h1>Blocked sellers:</h1>
 
-    <table id="blacklist" class="blacklist" cellspacing=0 cellpading=0>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody id="blacklist-body"></tbody>
-    </table>
+        <table id="blocklist" class="blocklist pure-table pure-table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="blocklist-body"></tbody>
+        </table>
+    </div>
 
     <script src="options.js"></script>
 </body>

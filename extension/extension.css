@@ -1,4 +1,4 @@
-.blacklist-extension-button {
+.blocklist-extension-button {
     margin-left: 5px;
     border: none;
     font-size: 12px;
@@ -9,12 +9,12 @@
     font-weight: bold;
 }
 
-.blacklist-extension-notification {
+.blocklist-extension-notification {
     position: fixed;
     bottom: 20px;
     left: calc(50% - 150px);
     padding: 7px 20px;
-    padding-right: 40px;
+    padding-right: 60px;
     text-align: center;
     min-width: 300px;
     background: #2c9c63e0;
@@ -23,7 +23,7 @@
     box-sizing: border-box;
 }
 
-.blacklist-extension-notification-button {
+.blocklist-extension-notification-button {
     color: white;
     background: none;
     cursor: pointer;
