@@ -6,7 +6,8 @@
     "content_scripts": [
         {
             "matches": [
-                "https://*.ebay.com/*"
+                "https://*.ebay.com/*",
+                "https://*.ebay.de/*"
             ],
             "js": [
                 "extension/extension.js"
@@ -23,6 +24,7 @@
     "permissions": [
         "tabs",
         "storage",
-        "https://*.ebay.com/*"
+        "https://*.ebay.com/*",
+        "https://*.ebay.de/*"
     ]
 }

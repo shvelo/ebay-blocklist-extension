@@ -1,4 +1,10 @@
 var blocklist = [];
+var options = {
+    hideLocalPickups: false,
+};
+const blocklistEl = document.getElementById('blocklist-body');
+const optionsForm = document.getElementById('options');
+const hideLocalPickupsEl = document.getElementById('hide-local-pickups');
 
 init();
 
@@ -9,9 +15,17 @@ function init() {
             console.log('Blocklist updated', blocklist);
             updateBlocklist();
         }
+        if (changes.ebayOptions) {
+            options = changes.ebayOptions.newValue;
+            console.log('Options updated', options);
+            updateOptions();
+        }
     });
 
+    optionsForm.addEventListener('change', optionsChanged);
+
     getBlocklist(updateBlocklist);
+    getOptions(updateOptions);
 }
 
 function getBlocklist(cb) {
@@ -23,9 +37,25 @@ function getBlocklist(cb) {
     });
 }
 
+function getOptions(cb) {
+    chrome.storage.sync.get(['ebayOptions'], function (result) {
+        console.log('Options currently is', result.ebayOptions);
+        if (result.ebayOptions)
+            options = result.ebayOptions;
+        if (cb) cb();
+    });
+}
+
 function saveBlocklist(cb) {
     chrome.storage.sync.set({ ebayBlacklist: blocklist }, function () {
         console.log('Saved Blocklist', blocklist);
+        if (cb) cb();
+    });
+}
+
+function saveOptions(cb) {
+    chrome.storage.sync.set({ ebayOptions: options }, function () {
+        console.log('Saved Options', options);
         if (cb) cb();
     });
 }
@@ -50,7 +80,6 @@ function unblockSeller(seller, cb) {
 }
 
 function updateBlocklist() {
-    const blocklistEl = document.getElementById('blocklist-body');
     blocklistEl.innerHTML = "";
     blocklist.forEach(function (seller) {
         let sellerEl = document.createElement('tr');
@@ -68,5 +97,14 @@ function updateBlocklist() {
         unblockTd.appendChild(unblockButton);
 
         blocklistEl.appendChild(sellerEl);
-    })
+    });
+}
+
+function updateOptions() {
+    hideLocalPickupsEl.checked = options.hideLocalPickups;
+}
+
+function optionsChanged() {
+    options.hideLocalPickups = hideLocalPickupsEl.checked;
+    saveOptions();
 }

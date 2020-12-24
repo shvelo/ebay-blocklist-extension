@@ -3,6 +3,9 @@ const notificationClass = 'blocklist-extension-notification';
 const notificationButtonClass = 'blocklist-extension-notification-button';
 
 var blocklist = [];
+var options = {
+    hideLocalPickups: false,
+};
 
 init();
 
@@ -11,6 +14,13 @@ function init() {
         if (changes.ebayBlacklist) {
             blocklist = changes.ebayBlacklist.newValue;
             console.log('Blocklist updated', blocklist);
+        }
+        if (changes.ebayOptions) {
+            options = changes.ebayOptions.newValue;
+            console.log('Options updated', options);
+        }
+
+        if (changes.ebayBlacklist || changes.ebayOptions) {
             runBlocklist();
         }
     });
@@ -46,10 +56,15 @@ function migrateBlocklist(newBlockList, cb) {
 }
 
 function getBlocklist(cb) {
-    chrome.storage.sync.get(['ebayBlacklist'], function (result) {
-        console.log('Retrieved Blocklist', result.ebayBlacklist);
-        if (result.ebayBlacklist)
+    chrome.storage.sync.get(['ebayBlacklist', 'ebayOptions'], function (result) {
+        if (result.ebayOptions) {
+            options = result.ebayOptions;
+            console.log('Retrieved options', options)
+        }
+        if (result.ebayBlacklist) {
             verifyBlocklist(result.ebayBlacklist, cb);
+            console.log('Retrieved Blocklist', result.ebayBlacklist);
+        }
         else if (cb) cb();
     });
 }
@@ -125,7 +140,19 @@ function runBlocklist() {
     let seller, sellerArea, blockButton;
 
     results.forEach(function (result) {
-        seller = result.textContent.match(/seller: ([^\n\(]+)/i)[1];
+
+        if (options.hideLocalPickups) {
+            let matches = result.textContent.match(/(Nur Abholung|Pickup only)/i);
+            let localPickup = matches && matches[1];
+            if (localPickup) {
+                console.log('Found local pickup:', localPickup);
+                result.style.display = 'none';
+                return;
+            }
+        }
+
+        let sellerMatches = result.textContent.match(/seller: ([^\n\(]+)/i);
+        seller = sellerMatches && sellerMatches[1];
         if (!seller)
             return;
 
