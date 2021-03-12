@@ -136,7 +136,7 @@ function notifyBlocked(seller) {
 }
 
 function runBlocklist() {
-    const results = document.querySelectorAll(".lvresult");
+    const results = document.querySelectorAll(".lvresult, .s-item");
     let seller, sellerArea, blockButton;
 
     results.forEach(function (result) {
@@ -162,7 +162,7 @@ function runBlocklist() {
         } else {
             result.style.display = 'block';
             // Add block button to all results
-            sellerArea = result.querySelector('.lvdetails li:last-child');
+            sellerArea = result.querySelector('.lvdetails li:last-child, .s-item__seller-info');
 
             // Return if button already added
             if (sellerArea.lastChild && sellerArea.lastChild.className === buttonClass)
