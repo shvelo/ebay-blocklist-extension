@@ -1,18 +1,20 @@
-const buttonClass = 'blocklist-extension-button';
-const notificationClass = 'blocklist-extension-notification';
-const notificationButtonClass = 'blocklist-extension-notification-button';
+const LOG_PREFIX = 'eBay Blocklist:';
+const BUTTON_CLASS = 'blocklist-extension-button';
+const NOTIFICATION_CLASS = 'blocklist-extension-notification';
+const NOTIFICATION_BUTTON_CLASS = 'blocklist-extension-notification-button';
 
 var blocklist = [];
 var options = {
     hideLocalPickups: false,
 };
+const log = console.log.bind(console, LOG_PREFIX);
 
 init();
 
 function init() {
     chrome.storage.onChanged.addListener(function (changes) {
-        if (changes.ebayBlacklist) {
-            blocklist = changes.ebayBlacklist.newValue;
+        if (changes.ebayBlocklist) {
+            blocklist = changes.ebayBlocklist.newValue;
             console.log('Blocklist updated', blocklist);
         }
         if (changes.ebayOptions) {
@@ -20,7 +22,7 @@ function init() {
             console.log('Options updated', options);
         }
 
-        if (changes.ebayBlacklist || changes.ebayOptions) {
+        if (changes.ebayBlocklist || changes.ebayOptions) {
             runBlocklist();
         }
     });
@@ -56,21 +58,22 @@ function migrateBlocklist(newBlockList, cb) {
 }
 
 function getBlocklist(cb) {
-    chrome.storage.sync.get(['ebayBlacklist', 'ebayOptions'], function (result) {
+    chrome.storage.sync.get(['ebayBlocklist', 'ebayOptions'], function (result) {
         if (result.ebayOptions) {
             options = result.ebayOptions;
             console.log('Retrieved options', options)
         }
-        if (result.ebayBlacklist) {
-            verifyBlocklist(result.ebayBlacklist, cb);
-            console.log('Retrieved Blocklist', result.ebayBlacklist);
+
+        if (result.ebayBlocklist) {
+            verifyBlocklist(result.ebayBlocklist, cb);
+            console.log('Retrieved Blocklist', result.ebayBlocklist);
         }
         else if (cb) cb();
     });
 }
 
 function saveBlocklist(cb) {
-    chrome.storage.sync.set({ ebayBlacklist: blocklist }, function () {
+    chrome.storage.sync.set({ ebayBlocklist: blocklist }, function () {
         console.log('Saved Blocklist', blocklist);
         if (cb) cb();
     });
@@ -113,10 +116,10 @@ function notifyBlocked(seller) {
     let removed = false;
     const blockNotification = document.createElement('div');
     blockNotification.innerHTML = `Seller <strong>${seller}</strong> blocked`;
-    blockNotification.className = notificationClass;
+    blockNotification.className = NOTIFICATION_CLASS;
     const undoButton = document.createElement('button');
     undoButton.innerText = 'undo';
-    undoButton.className = notificationButtonClass;
+    undoButton.className = NOTIFICATION_BUTTON_CLASS;
     let cachedSeller = seller;
     undoButton.addEventListener('click', function () {
         unblockSeller(cachedSeller);
@@ -151,8 +154,8 @@ function runBlocklist() {
             }
         }
 
-        let sellerMatches = result.textContent.match(/seller: ([^\n\(]+)/i);
-        seller = sellerMatches && sellerMatches[1];
+        let sellerMatches = result.textContent.match(/(seller|Verkäufer): ([^\n\(]+)/i);
+        seller = sellerMatches && sellerMatches[2];
         if (!seller)
             return;
 
@@ -165,13 +168,13 @@ function runBlocklist() {
             sellerArea = result.querySelector('.lvdetails li:last-child, .s-item__seller-info');
 
             // Return if button already added
-            if (sellerArea.lastChild && sellerArea.lastChild.className === buttonClass)
+            if (sellerArea.lastChild && sellerArea.lastChild.className === BUTTON_CLASS)
                 return;
 
             blockButton = document.createElement('button');
             blockButton.innerHTML = '&times Block';
             blockButton.dataset.isBlockButton = true;
-            blockButton.className = buttonClass;
+            blockButton.className = BUTTON_CLASS;
             let cachedSeller = seller;
             blockButton.addEventListener('click', function () {
                 blockSeller(cachedSeller);

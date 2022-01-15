@@ -1,0 +1,1 @@
+# eBay Blocklist filter for Chrome
